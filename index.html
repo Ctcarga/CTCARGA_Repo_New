@@ -4,59 +4,416 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTCarga.com - Transporte de Carga</title>
-    <link rel="stylesheet" href="./assets/css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <!-- Botón de menú móvil -->
     <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
 
-    <!-- Contenido principal -->
+    <!-- Modal de rechazo -->
+    <div class="modal" id="rechazoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-back-btn" onclick="cancelarRechazo()">Atrás</button>
+                <h3 class="modal-title">Motivo de Rechazo</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="motivoRechazo">Por favor indique el motivo del rechazo:</label>
+                    <textarea id="motivoRechazo" rows="5" style="width: 100%;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="cancelarRechazo()">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmarRechazo()">Enviar Rechazo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de asignación de flota -->
+    <div class="modal" id="asignacionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-back-btn" onclick="cancelarAsignacion()">Atrás</button>
+                <h3 class="modal-title">Asignación de Flota</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4>Información de la Oferta</h4>
+                    <div id="infoOfertaAsignacion"></div>
+                </div>
+                
+                <div class="form-section">
+                    <h4>Flota Disponible (menos de 10km)</h4>
+                    <div id="flotaDisponibleContainer">
+                        <p>Buscando vehículos disponibles...</p>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4>Opciones de Asignación</h4>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="asignacionOption" value="total" checked> 
+                            Asignar toda la flota disponible automáticamente
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="asignacionOption" value="parcial"> 
+                            Seleccionar vehículos manualmente
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="asignacionOption" value="ninguna"> 
+                            No asignar flota interna
+                        </label>
+                    </div>
+                    
+                    <div class="form-group" id="publicarTercerosContainer" style="margin-top: 20px;">
+                        <label>
+                            <input type="checkbox" id="publicarTerceros"> 
+                            Publicar carga restante a terceros
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="cancelarAsignacion()">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmarAsignacion()">Confirmar Asignación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación mejorado -->
+    <div class="modal confirmacion-modal" id="confirmacionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-back-btn" onclick="cerrarConfirmacion()">Atrás</button>
+                <h3 class="modal-title">Asignación registrada</h3>
+            </div>
+            <div class="modal-body" id="confirmacionBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="continuarPublicacionTerceros()">Continuar</button>
+                <button class="btn btn-primary" onclick="cerrarConfirmacion()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista de formulario para terceros -->
+    <div id="formTercerosView" style="display: none;">
+        <div class="header">
+            <h2>Publicación a Terceros</h2>
+            <button class="back-btn" onclick="showView('gestion-carga')">Volver a Gestión</button>
+        </div>
+
+        <div class="form-container">
+            <h1>Publicar carga a terceros</h1>
+            <h2>Complete los datos para publicar la carga restante</h2>
+            
+            <form id="tercerosForm">
+                <div class="form-section">
+                    <h3>Información de la Oferta Original</h3>
+                    <div class="form-group">
+                        <label>Código de Oferta</label>
+                        <input type="text" id="tercerosCodigo" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Empresa Generadora</label>
+                        <input type="text" id="tercerosEmpresa" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Ruta</label>
+                        <input type="text" id="tercerosRuta" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tonelaje a Publicar</label>
+                        <input type="text" id="tercerosTonelaje" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Vehículo Requerido</label>
+                        <input type="text" id="tercerosVehiculo" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Cargue</label>
+                        <input type="text" id="tercerosFecha" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Valorización para Terceros</h3>
+                    <div class="valor-tercero-group">
+                        <div class="form-group">
+                            <label for="tercerosValor">Valor a pagar por tonelada (COP)</label>
+                            <input type="number" id="tercerosValor" required min="1" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="tercerosObservaciones">Observaciones para transportistas</label>
+                            <textarea id="tercerosObservaciones" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" onclick="showView('gestion-carga')">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="publicarATerceros()">Publicar a Terceros</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="dashboard">
         <!-- Menú lateral -->
         <div class="sidebar" id="sidebar">
             <div class="logo-container">
-                <h2>CTCarga.com</h2>
+                <!-- Logo removido temporalmente -->
             </div>
-            <div class="menu-item active" onclick="showView('inicio')">Inicio</div>
-            <div class="menu-item" onclick="showView('gestion-carga')">Gestión Carga</div>
+            <div class="menu-item" onclick="showView('gestion-carga'); hideSidebar()">
+                Gestión Carga
+            </div>
+            <div class="menu-item" onclick="hideSidebar()">
+                Administración Flota
+            </div>
+            <div class="menu-item" onclick="hideSidebar()">
+                Reportes
+            </div>
+            <div class="menu-item" onclick="hideSidebar()">
+                Historial
+            </div>
         </div>
 
-        <!-- Vista de Inicio -->
-        <div class="main-content" id="inicioView">
-            <div class="header">
-                <h2>Bienvenido a CTCarga.com</h2>
-            </div>
-            <div class="inicio-container">
-                <h1>Estadísticas del Mes Actual</h1>
-                
-                <!-- Gráficos -->
-                <div class="graficos-container">
-                    <!-- Gráfico 1: Operaciones por Estado -->
-                    <div class="grafico-card">
-                        <h3 class="grafico-title">Operaciones por Estado</h3>
-                        <div class="grafico" id="graficoEstados"></div>
-                        <div class="grafico-leyenda">
-                            <div class="leyenda-item">
-                                <div class="leyenda-color" style="background-color: #2ecc71;"></div>
-                                <span>Finalizadas</span>
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <!-- Vista de Inicio (página por defecto) -->
+            <div id="inicioView">
+                <div class="header">
+                    <h2>Bienvenido a CTCarga.com</h2>
+                </div>
+
+                <div class="inicio-container">
+                    <h1>Estadísticas del Mes Actual</h1>
+                    
+                    <!-- Gráficos estadísticos -->
+                    <div class="graficos-container">
+                        <div class="grafico-card">
+                            <h3 class="grafico-title">Operaciones por Estado</h3>
+                            <div class="grafico" id="graficoEstados">
+                                <!-- Barras se generan dinámicamente -->
                             </div>
-                            <div class="leyenda-item">
-                                <div class="leyenda-color" style="background-color: #3498db;"></div>
-                                <span>En Proceso</span>
+                            <div class="grafico-leyenda">
+                                <div class="leyenda-item">
+                                    <div class="leyenda-color" style="background-color: var(--success);"></div>
+                                    <span>Finalizadas</span>
+                                </div>
+                                <div class="leyenda-item">
+                                    <div class="leyenda-color" style="background-color: var(--accent);"></div>
+                                    <span>En Proceso</span>
+                                </div>
+                                <div class="leyenda-item">
+                                    <div class="leyenda-color" style="background-color: var(--warning);"></div>
+                                    <span>Activas</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grafico-card">
+                            <h3 class="grafico-title">Evolución Mensual</h3>
+                            <div class="grafico" id="graficoEvolucion">
+                                <!-- Barras se generan dinámicamente -->
+                            </div>
+                            <div class="grafico-leyenda">
+                                <div class="leyenda-item">
+                                    <div class="leyenda-color" style="background-color: var(--accent);"></div>
+                                    <span>Mes Actual</span>
+                                </div>
+                                <div class="leyenda-item">
+                                    <div class="leyenda-color" style="background-color: #ddd;"></div>
+                                    <span>Mes Anterior</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Gráfico 2: Evolución Mensual -->
-                    <div class="grafico-card">
-                        <h3 class="grafico-title">Evolución Mensual</h3>
-                        <div class="grafico" id="graficoEvolucion"></div>
+                </div>
+            </div>
+
+            <!-- Vista de Gestión de Carga -->
+            <div id="gestionCargaView" style="display: none;">
+                <div class="header">
+                    <h2>Gestión de Carga</h2>
+                    <button class="back-btn" onclick="showView('inicio')">Volver al Inicio</button>
+                </div>
+
+                <!-- Tarjetas de Dashboard (ahora en Gestión Carga) -->
+                <div class="card-container">
+                    <div class="card" onclick="crearOferta('empresa')">
+                        <div class="card-title">
+                            Crear Oferta de Carga
+                        </div>
+                        <p>Registre nuevas cargas para asignación</p>
+                        <div class="stats" id="ofertasCreadas">0</div>
+                        <p><small>creadas esta semana</small></p>
                     </div>
+
+                    <div class="card" onclick="showView('ofertas-activas')">
+                        <div class="card-title">
+                            Ofertas Activas
+                        </div>
+                        <p>Ofertas disponibles para asignación</p>
+                        <div class="stats" id="ofertasActivas">0</div>
+                        <p><small id="detalleOfertas">0 de generadores</small></p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            En Proceso
+                        </div>
+                        <p>Cargas actualmente en transporte</p>
+                        <div class="stats">5</div>
+                        <p><small>2 con retraso</small></p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            Finalizadas
+                        </div>
+                        <p>Cargas completadas este mes</p>
+                        <div class="stats">24</div>
+                        <p><small>+15% vs mes anterior</small></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista de Formulario (inicialmente oculta) -->
+            <div id="formView" style="display: none;">
+                <div class="header">
+                    <h2 id="formTitle">Nueva Oferta de Carga</h2>
+                    <button class="back-btn" onclick="showView('gestion-carga')">Volver a Gestión</button>
+                </div>
+
+                <div class="form-container">
+                    <h1 id="formMainTitle">Nueva Oferta de Carga</h1>
+                    <h2>Complete los datos de la carga</h2>
+                    
+                    <form id="cargaForm">
+                        <!-- Sección 1: Información del Cliente -->
+                        <div class="form-section">
+                            <h3>Información del Cliente</h3>
+                            <div class="form-group">
+                                <label for="empresa">Empresa Generadora de carga que solicita</label>
+                                <input type="text" id="empresa" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 2: Ubicaciones -->
+                        <div class="form-section">
+                            <h3>Ubicaciones</h3>
+                            <div class="form-group">
+                                <label for="origen">Lugar de Cargue</label>
+                                <input type="text" id="origen" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="destino">Lugar de Descargue</label>
+                                <input type="text" id="destino" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 3: Detalles de la Carga -->
+                        <div class="form-section">
+                            <h3>Detalles de la Carga</h3>
+                            <div class="form-group">
+                                <label for="tonelaje">Tonelaje a movilizar (toneladas)</label>
+                                <input type="number" id="tonelaje" min="0.1" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha">Fecha y hora de inicio del cargue</label>
+                                <input type="datetime-local" id="fecha" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tiempoCargue">Tiempo estimado para el cargue (HH:MM:SS)</label>
+                                <input type="text" id="tiempoCargue" placeholder="Ej: 1:30:00" required pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$">
+                            </div>
+                            <div class="form-group" id="publicacionContainer" style="display: none;">
+                                <label for="publicacion">Tipo de publicación</label>
+                                <select id="publicacion">
+                                    <option value="publica">Pública</option>
+                                    <option value="cerrada">Cerrada</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 4: Requerimientos de Vehículo -->
+                        <div class="form-section">
+                            <h3>Requerimientos de Vehículo</h3>
+                            <div class="form-group">
+                                <label for="tipoVehiculo">Tipo de Vehículo</label>
+                                <select id="tipoVehiculo" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Van de carga">Van de carga</option>
+                                    <option value="Camión liviano (tipo Turbo)">Camión liviano (tipo Turbo)</option>
+                                    <option value="Camión rígido">Camión rígido</option>
+                                    <option value="Remolque">Remolque</option>
+                                    <option value="Tractocamión">Tractocamión</option>
+                                    <option value="Semirremolque">Semirremolque</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="configuracion">Configuración</label>
+                                <select id="configuracion" required>
+                                    <option value="">Primero seleccione Tipo de Vehículo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="carroceria">Tipo de Carrocería</label>
+                                <select id="carroceria" required>
+                                    <option value="">Primero seleccione Configuración</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="capacidad">Capacidad Máxima (toneladas)</label>
+                                <select id="capacidad" required>
+                                    <option value="">Primero seleccione Carrocería</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 5: Valorización -->
+                        <div class="form-section">
+                            <h3>Valorización</h3>
+                            <div class="form-group">
+                                <label for="valor">Valor de la oferta</label>
+                                <input type="text" id="valor" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" onclick="submitForm()">Publicar Oferta</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Vista de Ofertas Activas (inicialmente oculta) -->
+            <div id="ofertasActivasView" style="display: none;">
+                <div class="header">
+                    <h2>Ofertas Activas</h2>
+                    <button class="back-btn" onclick="showView('gestion-carga')">Volver a Gestión</button>
+                </div>
+
+                <div class="ofertas-container" id="ofertasList">
+                    <!-- Las ofertas se cargarán aquí dinámicamente -->
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="./assets/js/main.js"></script>
+    <script src="js/data-handler.js"></script>
+    <script src="js/form-handler.js"></script>
+    <script src="js/modal-handler.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
