@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTCarga.com - Transporte de Carga</title>
+    <link rel="stylesheet" href="./assets/css/styles.css">
+</head>
+<body>
+    <!-- Botón de menú móvil -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+
+    <!-- Contenido principal -->
+    <div class="dashboard">
+        <!-- Menú lateral -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <h2>CTCarga.com</h2>
+            </div>
+            <div class="menu-item active" onclick="showView('inicio')">Inicio</div>
+            <div class="menu-item" onclick="showView('gestion-carga')">Gestión Carga</div>
+        </div>
+
+        <!-- Vista de Inicio -->
+        <div class="main-content" id="inicioView">
+            <div class="header">
+                <h2>Bienvenido a CTCarga.com</h2>
+            </div>
+            <div class="inicio-container">
+                <h1>Estadísticas del Mes Actual</h1>
+                
+                <!-- Gráficos -->
+                <div class="graficos-container">
+                    <!-- Gráfico 1: Operaciones por Estado -->
+                    <div class="grafico-card">
+                        <h3 class="grafico-title">Operaciones por Estado</h3>
+                        <div class="grafico" id="graficoEstados"></div>
+                        <div class="grafico-leyenda">
+                            <div class="leyenda-item">
+                                <div class="leyenda-color" style="background-color: #2ecc71;"></div>
+                                <span>Finalizadas</span>
+                            </div>
+                            <div class="leyenda-item">
+                                <div class="leyenda-color" style="background-color: #3498db;"></div>
+                                <span>En Proceso</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráfico 2: Evolución Mensual -->
+                    <div class="grafico-card">
+                        <h3 class="grafico-title">Evolución Mensual</h3>
+                        <div class="grafico" id="graficoEvolucion"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./assets/js/main.js"></script>
+</body>
+</html>
